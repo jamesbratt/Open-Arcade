@@ -5,8 +5,8 @@
   "author": "leandro cabrera <leandcabrera@gmail.com>",
   "main": "index.js",
   "scripts": {
-    "start": "webpack",
-    "deploy": ""
+    "start": "webpack --mode=development",
+    "deploy": "webpack --mode=production"
   },
   "license": "MIT",
   "devDependencies": {

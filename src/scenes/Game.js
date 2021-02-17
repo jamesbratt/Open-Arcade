@@ -1,8 +1,6 @@
 /* globals __DEV__ */
 import Phaser from 'phaser'
 
-const json = require('./file.json')
-
 export default class extends Phaser.Scene {
     constructor () {
         super({ key: 'GameScene' })
@@ -10,7 +8,13 @@ export default class extends Phaser.Scene {
         this.player = null
     }
     init () {}
-    preload () {}
+    preload () {
+        this.load.image('tile', './assets/images/tile.png')
+        this.load.spritesheet('dude',
+            './assets/images/dude.png',
+            { frameWidth: 32, frameHeight: 48 }
+        )
+    }
 
     create () {
         const platforms = this.physics.add.staticGroup()
@@ -67,30 +71,6 @@ export default class extends Phaser.Scene {
             })
         }
 
-        const test = [
-            { children: [] },
-            { children: [] },
-            { children: [
-                { children: [] },
-                { children: [
-                    { children: [] },
-                    { children: [] },
-                    { children: [] },
-                    { children: [] },
-                ] },
-                { children: [
-                    { children: [] },
-                    { children: [] },
-                    { children: [] },
-                    { children: [] },
-                ] },
-            ] },
-            { children: [] },
-            { children: [] },
-
-        ]
-
-        // generateScene(test, null)
         generateScene(window.gameData.children, false)
     }
 

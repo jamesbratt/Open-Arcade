@@ -13,5 +13,5 @@ export default {
             gravity: { y: 300 },
             debug: false
         }
-    },
+    }
 }

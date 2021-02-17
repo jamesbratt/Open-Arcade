@@ -1,29 +1,6 @@
 import Phaser from 'phaser'
-
-import BootScene from './scenes/Boot'
-import SplashScene from './scenes/Splash'
 import GameScene from './scenes/Game'
-
 import config from './config'
-
-chrome.runtime.onMessage.addListener((request, sender) => {
-    if (request.action === 'getSource') {
-        console.log(JSON.stringify(request.source))
-
-        const gameConfig = Object.assign(config, {
-            scene: [BootScene, SplashScene, GameScene]
-        })
-
-        class Game extends Phaser.Game {
-            constructor () {
-                super(gameConfig)
-            }
-        }
-
-        window.gameData = request.source
-        window.game = new Game()
-    }
-})
 
 function onWindowLoad () {
     chrome.tabs.executeScript(null, {
@@ -49,9 +26,44 @@ function onWindowLoad () {
     }, function () {
         // If you try and inject into an extensions page or the webstore/NTP you'll get an error
         if (chrome.runtime.lastError) {
-            console.log(chrome.runtime.lastError.message);
+            console.log(chrome.runtime.lastError.message)
         }
     })
 }
 
-window.onload = onWindowLoad
+if (process.env.NODE_ENV === 'production') {
+    chrome.runtime.onMessage.addListener((request, sender) => {
+        if (request.action === 'getSource') {
+            const gameConfig = Object.assign(config, {
+                scene: [GameScene]
+            })
+
+            class Game extends Phaser.Game {
+                constructor () {
+                    super(gameConfig)
+                }
+            }
+
+            window.gameData = request.source
+            window.game = new Game()
+        }
+    })
+
+    window.onload = onWindowLoad
+} else {
+    const gameConfig = Object.assign(config, {
+        scene: [GameScene]
+    })
+
+    class Game extends Phaser.Game {
+        constructor () {
+            super(gameConfig)
+        }
+    }
+
+    const devData = require('../dev-data.json')
+
+    window.gameData = devData
+
+    window.game = new Game()
+}

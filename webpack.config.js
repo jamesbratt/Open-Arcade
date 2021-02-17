@@ -8,7 +8,6 @@ module.exports = {
         app: [path.resolve(__dirname, 'src/main.js')],
         vendor: ['phaser']
     },
-    mode: 'development',
     devtool: false,
     output: {
         chunkLoading: false,

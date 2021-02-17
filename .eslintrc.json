@@ -6,7 +6,8 @@
     "sourceType": "module"
   },
   "env": {
-    "browser": true
+    "browser": true,
+    "webextensions": true
   },
   "globals": {
     "__DEV__": true

@@ -91,7 +91,7 @@ export default class extends Phaser.Scene {
         ]
 
         // generateScene(test, null)
-        generateScene(json.children, false)
+        generateScene(window.gameData.children, false)
     }
 
     update () {

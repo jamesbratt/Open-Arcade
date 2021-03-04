@@ -1,13 +1,59 @@
 /* globals __DEV__ */
 import Phaser from 'phaser'
+import { extractPlatformDataFromBrowser } from '../utils'
 
 export default class extends Phaser.Scene {
     constructor () {
         super({ key: 'GameScene' })
         this.cursors = null
         this.player = null
+        this.platforms = null
     }
-    init () {}
+
+    refreshGame () {
+        this.platforms.clear(true, true)
+        this.player.destroy()
+        this.startGame()
+    }
+
+    startGame () {
+        this.platforms = this.physics.add.staticGroup()
+        this.player = this.physics.add.sprite(100, 300, 'dude')
+        this.cameras.main.setBounds(0, 0, 10000, 100)
+        this.physics.world.setBounds(0, 0, 10000, 600)
+        this.cameras.main.startFollow(this.player)
+        this.physics.add.collider(this.player, this.platforms)
+        this.player.setBounce(0.2)
+        this.player.setCollideWorldBounds(true)
+    }
+
+    renderScene (sceneData) {
+        let x = -15
+        let y = 580
+
+        const generateScene = (nodes, hasParent) => {
+            nodes.forEach((node, i) => {
+                x = x + ((30 / 2) + 20)
+
+                if (i === (nodes.length - 1)) {
+                    y = y + 30
+                }
+
+                if (i < (nodes.length - 1) || hasParent) {
+                    this.platforms.create(x, y, 'tile')
+                }
+
+                if (node.children.length > 0) {
+                    node.children.push({ children: [] })
+                    y = y - 30
+                    generateScene(node.children, true)
+                }
+            })
+        }
+
+        generateScene(sceneData.children, false)
+    }
+
     preload () {
         this.load.image('tile', './assets/images/tile.png')
         this.load.spritesheet('dude',
@@ -17,14 +63,32 @@ export default class extends Phaser.Scene {
     }
 
     create () {
-        const platforms = this.physics.add.staticGroup()
-        this.player = this.physics.add.sprite(100, 300, 'dude')
-        this.cameras.main.setBounds(0, 0, 10000, 100)
-        this.physics.world.setBounds(0, 0, 10000, 600)
-        this.cameras.main.startFollow(this.player)
-        this.physics.add.collider(this.player, platforms)
-        this.player.setBounce(0.2)
-        this.player.setCollideWorldBounds(true)
+        /**
+         * TODO: Design some kind of harness for the game to run in.
+         * As when developing the game it is much easier to run the game
+         * in a web browser as opposed to inside a chrome extension
+         */
+        if (process.env.NODE_ENV === 'production') {
+            chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+                if (changeInfo.status === 'complete') {
+                    this.refreshGame()
+                    extractPlatformDataFromBrowser()
+                };
+            })
+
+            chrome.runtime.onMessage.addListener((request, sender) => {
+                if (request.action === 'getSource') {
+                    this.renderScene(request.source)
+                }
+            })
+
+            this.startGame()
+            extractPlatformDataFromBrowser()
+        } else {
+            const devData = require('../../dev-data.json')
+            this.startGame()
+            this.renderScene(devData)
+        }
 
         this.cursors = this.input.keyboard.createCursorKeys()
 
@@ -47,31 +111,6 @@ export default class extends Phaser.Scene {
             frameRate: 10,
             repeat: -1
         })
-
-        let x = -15
-        let y = 580
-
-        const generateScene = (nodes, hasParent) => {
-            nodes.forEach((node, i) => {
-                x = x + ((30 / 2) + 20)
-
-                if (i === (nodes.length - 1)) {
-                    y = y + 30
-                }
-
-                if (i < (nodes.length - 1) || hasParent) {
-                    platforms.create(x, y, 'tile')
-                }
-
-                if (node.children.length > 0) {
-                    node.children.push({ children: [] })
-                    y = y - 30
-                    generateScene(node.children, true)
-                }
-            })
-        }
-
-        generateScene(window.gameData.children, false)
     }
 
     update () {

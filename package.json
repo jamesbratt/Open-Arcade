@@ -1,7 +1,7 @@
 {
-  "name": "net-defenders",
+  "name": "open-arcade",
   "version": "1.0.0",
-  "description": "An open world game that runs inside Chrome devtools",
+  "description": "An open world game where your environment is generated as you browse the internet",
   "author": "James Bratt",
   "main": "src/main.js",
   "scripts": {

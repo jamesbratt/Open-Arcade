@@ -2,4 +2,3 @@ node_modules/
 dist/
 .vscode/
 *.log
-dev-data.json

@@ -85,7 +85,7 @@ export default class extends Phaser.Scene {
             this.startGame()
             extractPlatformDataFromBrowser()
         } else {
-            const devData = require('../../dev-data.json')
+            const devData = require('../../fixtures/dev-data.json')
             this.startGame()
             this.renderScene(devData)
         }

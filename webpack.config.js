@@ -1,52 +1,34 @@
-var path = require('path')
-var webpack = require('webpack')
+const path = require('path')
 const CopyPlugin = require('copy-webpack-plugin')
-var BrowserSyncPlugin = require('browser-sync-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
-    entry: {
-        app: [path.resolve(__dirname, 'src/main.js')],
-        vendor: ['phaser']
-    },
-    devtool: false,
+    entry: './src/main.js',
+    mode: 'development',
     output: {
-        chunkLoading: false,
-        wasmLoading: false,
-        pathinfo: true,
-        path: path.resolve(__dirname, 'dist'),
-        publicPath: './dist/',
-        filename: '[name].bundle.js'
+        filename: 'bundle.js',
+        path: path.resolve(__dirname, 'dist')
     },
-    watch: true,
+    devtool: 'inline-source-map',
     plugins: [
-        new webpack.DefinePlugin({
-            CANVAS_RENDERER: JSON.stringify(true),
-            WEBGL_RENDERER: JSON.stringify(true)
+        new HtmlWebpackPlugin({
+            title: 'Open Arcade',
+            template: './src/index.html'
         }),
-        new CopyPlugin({
-            patterns: [
-                { from: './assets', to: './assets' },
-                { from: './manifest.json', to: './manifest.json' },
-                { from: './index.html', to: './index.html' },
-                { from: './init.html', to: './init.html' },
-                { from: './init.js', to: './init.js' }
-            ]
-        }),
-        new BrowserSyncPlugin({
-            host: process.env.IP || 'localhost',
-            port: process.env.PORT || 3000,
-            index: 'debug.html',
-            server: {
-                baseDir: ['./', './build']
-            }
-        })
     ],
+    devServer: {
+        static: './dist',
+    },
     module: {
         rules: [
             {
-                test: /\.js$/,
-                use: ['babel-loader'],
-                include: path.join(__dirname, 'src')
+                test: /\.js?$/,
+                use: 'babel-loader',
+                exclude: /node_modules/
+            },
+            {
+                test: /\.css$/i,
+                use: ['style-loader', 'css-loader']
             }
         ]
     }

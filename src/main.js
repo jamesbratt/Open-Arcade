@@ -14,7 +14,7 @@ let keyCodeMap = {};
 
 const player = {
     x: 0,
-    y: 0,
+    y: 370,
 
     get: function() {
         return { x: this.x, y: this.y }
@@ -31,7 +31,7 @@ const player = {
 }
 
 const camera = {
-    x: 500,
+    x: 950,
     y: 300,
     offset: 0,
     
@@ -51,7 +51,7 @@ const controlPlayer = (e) => {
     keyCodeMap[e.code] = e.type == 'keydown';
     if (keyCodeMap[CONTROLS.MOVE_LEFT]) {
         const { x, y } = player.get();
-        updateGame({ updatedPlayer: { x: x - 30, y } })
+        updateGame({ updatedPlayer: { x: x - 10, y } })
     }
     if (keyCodeMap[CONTROLS.MOVE_RIGHT]) {
         const { x, y } = player.get();
@@ -61,7 +61,7 @@ const controlPlayer = (e) => {
             camera.set(30);
             updateGame({ updatedPlayer: { x, y } })
         } else {
-            updateGame({ updatedPlayer: { x: x + 30, y } })
+            updateGame({ updatedPlayer: { x: x + 10, y } })
         }
     }
 }
@@ -79,7 +79,7 @@ const scene = {
 
         const generateScene = (nodes, hasParent) => {
             nodes.forEach((node, i) => {
-                x = x + ((30 / 2) + 20)
+                x = x + ((30 / 2) + 15)
 
                 if (i === (nodes.length - 1)) {
                     y = y + 30
@@ -107,7 +107,7 @@ const startGame = () => {
     document.addEventListener('keyup', controlPlayer);
     document.addEventListener('keydown', controlPlayer);
 
-    player.set({x: 0, y: 0});
+    player.set({x: 20, y: 370});
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
     tiles.slice(scene.start, scene.end).forEach(tile => {
         context.fillStyle = "red";
@@ -115,21 +115,51 @@ const startGame = () => {
     })
 }
 
+const checkForIntersection = (updatedPlayer, tiles) => {
+    const playerMaxX = updatedPlayer.x + 30;
+
+    const intersections = tiles.filter(tile => {
+        const tileMinX = tile.x;
+        const tileMaxX = tile.x + 30;
+    
+        if(playerMaxX > tileMinX && playerMaxX < tileMaxX) {
+            return tile
+        };
+    });
+
+    return intersections.length > 0 ? intersections[intersections.length - 1] : null;
+}
+
 const updateGame = ({ updatedPlayer }) => {
     context.clearRect(0, 0, 1000, 600);
-    player.set(updatedPlayer);
-    
+
     const { offset } = camera.get();
 
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
-    tiles.slice((scene.start + offset), (scene.end + offset)).reduce((acc, curr, i) => {
+    const chunkedTiles = tiles.slice((scene.start + offset), (scene.end + offset)).reduce((acc, curr, i) => {
         return offset > 0 ?
-            [ ...acc, { x: acc.length === 0 ? 0 : acc[i - 1].x + ((30 / 2) + 20), y: curr.y}] :
+            [ ...acc, { x: acc.length === 0 ? 0 : acc[i - 1].x + ((30 / 2) + 15), y: curr.y}] :
                 [ ...acc, { x: curr.x, y: curr.y}];
-    }, []).forEach(tile => {
+    }, [])
+    
+    chunkedTiles.forEach(tile => {
         context.fillStyle = "red";
         context.fillRect(tile.x, tile.y, 30, 30);
     });
+
+    const intersectedTile = checkForIntersection(updatedPlayer, chunkedTiles);
+
+    if (!intersectedTile) {
+        player.set(updatedPlayer);
+    }
+
+    if (intersectedTile.y < updatedPlayer.y + 30) {
+        player.set({ x: updatedPlayer.x, y: updatedPlayer.y - 10 });
+    } else if (intersectedTile.y > updatedPlayer.y + 30) {
+        player.set({ x: updatedPlayer.x, y: updatedPlayer.y + 10 });
+    } else {
+        player.set(updatedPlayer);
+    }
 }
 
 startGame();

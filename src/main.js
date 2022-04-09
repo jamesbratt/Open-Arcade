@@ -15,8 +15,8 @@ let horizontalOffset = 0;
 let verticalOffset = 0;
 
 const player = {
-    x: 500,
-    y: 300,
+    x: 0,
+    y: 400,
 
     get: function() {
         return { x: this.x, y: this.y }
@@ -35,11 +35,11 @@ const controlPlayer = (e) => {
         if (horizontalOffset > 0) {
             --horizontalOffset;
         }
-        updateGame()
+        updateGame('left')
     }
     if (keyCodeMap[CONTROLS.MOVE_RIGHT]) {
         horizontalOffset++;
-        updateGame();
+        updateGame('right');
     }
 }
 
@@ -49,14 +49,14 @@ const scene = {
 
     renderScene: function(sceneData) {
 
-        let x = -15
+        let x = -30
         let y = 400
 
         const tiles = [];
 
         const generateScene = (nodes, hasParent) => {
             nodes.forEach((node, i) => {
-                x = x + ((30 / 2) + 15)
+                x = x + 30
 
                 if (i === (nodes.length - 1)) {
                     y = y + 30
@@ -84,16 +84,16 @@ const startGame = () => {
     document.addEventListener('keyup', controlPlayer);
     document.addEventListener('keydown', controlPlayer);
 
-    player.set();
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
     tiles.slice(scene.start, scene.end).forEach(tile => {
         context.fillStyle = "red";
         context.fillRect(tile.x, tile.y, 30, 30);
     })
+    player.set();
 }
 
 const checkForIntersection = (foo) => {
-    const playerMaxX = 530;
+    const playerMaxX = 45;
 
     const intersections = foo.filter(tile => {
         const tileMinX = tile.x;
@@ -107,22 +107,31 @@ const checkForIntersection = (foo) => {
     return intersections.length > 0 ? intersections[intersections.length - 1] : null;
 }
 
-const updateGame = () => {
+const foobar = (foo, target) => {
+    const isLargeNumber = (element) => element.x === target;
+    const fizz = foo.findIndex(isLargeNumber);
+    return foo[fizz];
+}
+
+const updateGame = (direction) => {
     context.clearRect(0, 0, 1000, 600);
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
     const chunkedTiles = tiles.slice((scene.start + horizontalOffset), (scene.end + horizontalOffset)).reduce((acc, curr, i) => {
         return horizontalOffset > 0 ?
-            [ ...acc, { x: acc.length === 0 ? 0 : acc[i - 1].x + ((30 / 2) + 15), y: curr.y + verticalOffset}] :
+            [ ...acc, { x: acc.length === 0 ? 0 : acc[i - 1].x + 30, y: curr.y + verticalOffset}] :
                 [ ...acc, { x: curr.x, y: curr.y + verticalOffset}];
     }, []);
 
-    const intersectedTile = checkForIntersection(chunkedTiles);
+    const target = direction === 'left' ? 0 : 30
+    const intersectedTile = foobar(chunkedTiles ,target);
 
-    if (intersectedTile.y < 330) {
+    console.log(intersectedTile)
+
+    if (intersectedTile.y < 400) {
         console.log('up')
         verticalOffset = verticalOffset + 30
-    } else if (intersectedTile.y > 330) {
-        console.log('down')
+    } else if (intersectedTile.y > 400) {
+        console.log(intersectedTile)
         verticalOffset = verticalOffset - 30
     } else {
         console.log('straight')

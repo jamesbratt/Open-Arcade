@@ -11,58 +11,84 @@ const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
 
 let keyCodeMap = {};
+let horizontalOffset = 0;
 
 const player = {
-    x: 0,
-    y: 370,
+    x: 500,
+    y: 300,
 
     get: function() {
         return { x: this.x, y: this.y }
     },
 
-    set: function({x, y}) {
-        this.x = x;
-        this.y = y;
+    set: function() {
+        // this.x = x;
+        // this.y = y;
 
         context.fillStyle = "blue";
-        context.fillRect(x, y, 30, 30);
+        context.fillRect(this.x, this.y, 30, 30);
         return { x: this.x, y: this.y }
     }
 }
-
+/*
 const camera = {
-    x: 950,
+    x: 500,
     y: 300,
-    offset: 0,
+    hOffset: 0,
+    vOffset: 0,
     
     get: function() {
-        const { x, y, offset } = this;
-        return { x, y, offset }
+        const { x, y, hOffset, vOffset } = this;
+        return { x, y, hOffset, vOffset }
     }, 
 
-    set: function() {
-        this.offset = this.offset + 1;
+    incHoffset: function() {
+        this.hOffset = this.hOffset + 1;
+        const { x, y } = this;
+        return { x, y }
+    },
+
+    incVoffset: function() {
+        this.vOffset = this.vOffset + 1;
         const { x, y } = this;
         return { x, y }
     } 
-}
+}*/
 
 const controlPlayer = (e) => {
     keyCodeMap[e.code] = e.type == 'keydown';
     if (keyCodeMap[CONTROLS.MOVE_LEFT]) {
-        const { x, y } = player.get();
-        updateGame({ updatedPlayer: { x: x - 10, y } })
+        if (horizontalOffset > 0) {
+            --horizontalOffset;
+        }
+        updateGame()
+       /* const { x, y } = player.get();
+        updateGame({ updatedPlayer: { x: x - 30, y } })*/
     }
     if (keyCodeMap[CONTROLS.MOVE_RIGHT]) {
-        const { x, y } = player.get();
-        const { x: cameraX } = camera.get();
+        horizontalOffset++;
+        updateGame();
+        /*const { x, y } = player.get();
+        const { x: cameraX, y: cameraY } = camera.get();
 
-        if (x >= cameraX) {
-            camera.set(30);
-            updateGame({ updatedPlayer: { x, y } })
+        const isChangeInCameraOffsetH = (x >= cameraX);
+        const isChangeInCameraOffsetV = (y <= cameraY);
+        console.log(isChangeInCameraOffsetH + '-' + isChangeInCameraOffsetV);
+
+        if (!isChangeInCameraOffsetH || !isChangeInCameraOffsetV) {
+            updateGame({ updatedPlayer: { x: x + 30, y } })
         } else {
-            updateGame({ updatedPlayer: { x: x + 10, y } })
-        }
+            if (isChangeInCameraOffsetH) {
+                camera.incHoffset();
+            }
+    
+            if (isChangeInCameraOffsetV) {
+                camera.incVoffset();
+            }
+    
+            updateGame({ updatedPlayer: { x, y: isChangeInCameraOffsetV ? y + 30 : y } })
+        }*/
+
     }
 }
 
@@ -107,7 +133,7 @@ const startGame = () => {
     document.addEventListener('keyup', controlPlayer);
     document.addEventListener('keydown', controlPlayer);
 
-    player.set({x: 20, y: 370});
+    player.set();
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
     tiles.slice(scene.start, scene.end).forEach(tile => {
         context.fillStyle = "red";
@@ -130,36 +156,46 @@ const checkForIntersection = (updatedPlayer, tiles) => {
     return intersections.length > 0 ? intersections[intersections.length - 1] : null;
 }
 
-const updateGame = ({ updatedPlayer }) => {
+const updateGame = () => {
     context.clearRect(0, 0, 1000, 600);
 
-    const { offset } = camera.get();
+    // const { hOffset, vOffset } = camera.get();
 
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
-    const chunkedTiles = tiles.slice((scene.start + offset), (scene.end + offset)).reduce((acc, curr, i) => {
-        return offset > 0 ?
+    const chunkedTiles = tiles.slice((scene.start + horizontalOffset), (scene.end + horizontalOffset)).reduce((acc, curr, i) => {
+        return horizontalOffset > 0 ?
             [ ...acc, { x: acc.length === 0 ? 0 : acc[i - 1].x + ((30 / 2) + 15), y: curr.y}] :
                 [ ...acc, { x: curr.x, y: curr.y}];
-    }, [])
+    }, []);
+
+    const foo = chunkedTiles.filter(tile => tile.y > 30 || tile.y < 570)
+
+    /*const chunkedTiles = hChunkedTiles.reduce((acc, curr, i) => {
+        return vOffset > 0 ?
+            [ ...acc, { x: curr.x, y: curr.y + 30}] :
+                [ ...acc, { x: curr.x, y: curr.y}];
+    }, []);*/
     
-    chunkedTiles.forEach(tile => {
+    foo.forEach(tile => {
         context.fillStyle = "red";
         context.fillRect(tile.x, tile.y, 30, 30);
     });
 
-    const intersectedTile = checkForIntersection(updatedPlayer, chunkedTiles);
+    player.set();
+
+    /*const intersectedTile = checkForIntersection(updatedPlayer, chunkedTiles);
 
     if (!intersectedTile) {
         player.set(updatedPlayer);
     }
 
     if (intersectedTile.y < updatedPlayer.y + 30) {
-        player.set({ x: updatedPlayer.x, y: updatedPlayer.y - 10 });
+        player.set({ x: updatedPlayer.x, y: updatedPlayer.y - 30 });
     } else if (intersectedTile.y > updatedPlayer.y + 30) {
-        player.set({ x: updatedPlayer.x, y: updatedPlayer.y + 10 });
+        player.set({ x: updatedPlayer.x, y: updatedPlayer.y + 30 });
     } else {
         player.set(updatedPlayer);
-    }
+    }*/
 }
 
 startGame();

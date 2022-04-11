@@ -16,13 +16,15 @@ let verticalOffset = 0;
 
 const player = {
     x: 0,
-    y: 400,
+    y: 0,
 
     get: function() {
         return { x: this.x, y: this.y }
     },
 
-    set: function() {
+    set: function(x, y) {
+        this.x = x;
+        this.y = y;
         context.fillStyle = "blue";
         context.fillRect(this.x, this.y, 30, 30);
         return { x: this.x, y: this.y }
@@ -49,7 +51,7 @@ const scene = {
 
     renderScene: function(sceneData) {
 
-        let x = -30
+        let x = 0
         let y = 400
 
         const tiles = [];
@@ -89,28 +91,7 @@ const startGame = () => {
         context.fillStyle = "red";
         context.fillRect(tile.x, tile.y, 30, 30);
     })
-    player.set();
-}
-
-const checkForIntersection = (foo) => {
-    const playerMaxX = 45;
-
-    const intersections = foo.filter(tile => {
-        const tileMinX = tile.x;
-        const tileMaxX = tile.x + 30;
-    
-        if(playerMaxX > tileMinX && playerMaxX < tileMaxX) {
-            return tile
-        };
-    });
-
-    return intersections.length > 0 ? intersections[intersections.length - 1] : null;
-}
-
-const foobar = (foo, target) => {
-    const isLargeNumber = (element) => element.x === target;
-    const fizz = foo.findIndex(isLargeNumber);
-    return foo[fizz];
+    player.set(510, 340); // TODO this cannot be hard coded
 }
 
 const updateGame = (direction) => {
@@ -118,33 +99,40 @@ const updateGame = (direction) => {
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
     const chunkedTiles = tiles.slice((scene.start + horizontalOffset), (scene.end + horizontalOffset)).reduce((acc, curr, i) => {
         return horizontalOffset > 0 ?
-            [ ...acc, { x: acc.length === 0 ? 0 : acc[i - 1].x + 30, y: curr.y + verticalOffset}] :
-                [ ...acc, { x: curr.x, y: curr.y + verticalOffset}];
+            [ ...acc, { x: acc.length === 0 ? 0 : acc[i - 1].x + 30, y: curr.y}] :
+                [ ...acc, { x: curr.x, y: curr.y}];
     }, []);
 
-    const target = direction === 'left' ? 0 : 30
-    const intersectedTile = foobar(chunkedTiles ,target);
+    const currentTileIndex = 15; // TODO this cannot be hard coded
 
-    console.log(intersectedTile)
-
-    if (intersectedTile.y < 400) {
-        console.log('up')
-        verticalOffset = verticalOffset + 30
-    } else if (intersectedTile.y > 400) {
-        console.log(intersectedTile)
-        verticalOffset = verticalOffset - 30
-    } else {
-        console.log('straight')
+    let NextPosition = null
+    if (direction === 'left') {
+        NextPosition = chunkedTiles[currentTileIndex - 1];
     }
 
-    const visibleTiles = chunkedTiles.filter(tile => tile.y > 30 || tile.y < 570)
+    if (direction === 'right') {
+        NextPosition = chunkedTiles[currentTileIndex + 1];
+    }
+
+    if (NextPosition) {
+        if (NextPosition.y < chunkedTiles[currentTileIndex].y) {
+            verticalOffset = verticalOffset + 30
+        }
+        if (NextPosition.y > chunkedTiles[currentTileIndex].y) {
+            verticalOffset = verticalOffset - 30
+        }
+    }
+
+    const chunkedTilesWithVerticalOffsetApplied = chunkedTiles.map(tile => ({ ...tile, y: tile.y + verticalOffset }))
+
+    const visibleTiles = chunkedTilesWithVerticalOffsetApplied.filter(tile => tile.y > 30 || tile.y < 570)
     
     visibleTiles.forEach(tile => {
         context.fillStyle = "red";
         context.fillRect(tile.x, tile.y, 30, 30);
     });
 
-    player.set();
+    player.set(NextPosition.x, NextPosition.y + verticalOffset);
 }
 
 startGame();

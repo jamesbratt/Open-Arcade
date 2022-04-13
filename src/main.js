@@ -88,11 +88,28 @@ const startGame = () => {
 
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
     tiles.slice(scene.start, scene.end).forEach(tile => {
-        context.fillStyle = "red";
-        context.fillRect(tile.x, tile.y, 30, 30);
+        fillTile(tile);
+        fillVerticalSceneSlice(tile);
     })
     player.set(510, 340); // TODO this cannot be hard coded
 }
+
+const fillTile = ({ x, y }) => {
+    context.fillStyle = "red";
+    context.fillRect(x, y, 30, 30);
+}
+
+const fillVerticalSceneSlice = (tile) => {
+    const space = 600 - tile.y;
+    const num = space/30;
+
+    let yCounter = tile.y;
+    for (let index = 0; index < num; index++) {
+        context.fillStyle = "red";
+        context.fillRect(tile.x, yCounter + 30, 30, 30);
+        yCounter = yCounter + 30;
+    }
+} 
 
 const updateGame = (direction) => {
     context.clearRect(0, 0, 1000, 600);
@@ -128,8 +145,8 @@ const updateGame = (direction) => {
     const visibleTiles = chunkedTilesWithVerticalOffsetApplied.filter(tile => tile.y > 30 || tile.y < 570)
     
     visibleTiles.forEach(tile => {
-        context.fillStyle = "red";
-        context.fillRect(tile.x, tile.y, 30, 30);
+        fillTile(tile);
+        fillVerticalSceneSlice(tile);
     });
 
     player.set(NextPosition.x, NextPosition.y + verticalOffset);

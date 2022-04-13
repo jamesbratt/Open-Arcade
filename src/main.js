@@ -87,11 +87,35 @@ const startGame = () => {
     document.addEventListener('keydown', controlPlayer);
 
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
-    tiles.slice(scene.start, scene.end).forEach(tile => {
-        fillTile(tile);
+    tiles.slice(scene.start, scene.end).forEach((tile, i, { [i-1]: prev, [i+1]: next }) => {
+        if (prev && prev.y > tile.y) {
+            fillAscendingTile(tile);
+        } else if (prev && prev.y < tile.y) {
+           fillDescendingTile(tile)
+        } else {
+            fillTile(tile);
+        }
         fillVerticalSceneSlice(tile);
     })
     player.set(510, 340); // TODO this cannot be hard coded
+}
+
+const fillAscendingTile = ({ x, y }) => {
+    context.fillStyle = "red";
+    context.beginPath();
+    context.moveTo(x + 30, y + 30);
+    context.lineTo(x + 30, y);
+    context.lineTo(x, y + 30);
+    context.fill();
+}
+
+const fillDescendingTile = ({ x, y }) => {
+    context.fillStyle = "red";
+    context.beginPath();
+    context.moveTo(x, y);
+    context.lineTo(x + 30, y + 30);
+    context.lineTo(x, y + 30);
+    context.fill();
 }
 
 const fillTile = ({ x, y }) => {
@@ -144,8 +168,14 @@ const updateGame = (direction) => {
 
     const visibleTiles = chunkedTilesWithVerticalOffsetApplied.filter(tile => tile.y > 30 || tile.y < 570)
     
-    visibleTiles.forEach(tile => {
-        fillTile(tile);
+    visibleTiles.forEach((tile, i, { [i-1]: prev, [i+1]: next }) => {
+        if (prev && prev.y > tile.y) {
+            fillAscendingTile(tile);
+        } else if (prev && prev.y < tile.y) {
+           fillDescendingTile(tile)
+        } else {
+            fillTile(tile);
+        }
         fillVerticalSceneSlice(tile);
     });
 

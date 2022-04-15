@@ -17,9 +17,14 @@ let verticalOffset = 0;
 const player = {
     x: 0,
     y: 0,
+    facingDirection: 'right',
 
     get: function() {
         return { x: this.x, y: this.y }
+    },
+
+    setFacingDirection: function(direction) {
+        this.facingDirection = direction;
     },
 
     set: function(x, y) {
@@ -134,6 +139,10 @@ const fillVerticalSceneSlice = (tile) => {
 } 
 
 const updateGame = (direction) => {
+    if (direction !== player.facingDirection) {
+        player.setFacingDirection(direction);
+    }
+    
     context.clearRect(0, 0, 1000, 600);
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
     const chunkedTiles = tiles.slice((scene.start + horizontalOffset), (scene.end + horizontalOffset)).reduce((acc, curr, i) => {
@@ -176,7 +185,7 @@ const updateGame = (direction) => {
         fillVerticalSceneSlice(tile);
     });
 
-    player.set(NextPosition.x, NextPosition.y + verticalOffset);
+    player.set(chunkedTiles[currentTileIndex].x + 30, (chunkedTiles[currentTileIndex].y + verticalOffset) - 30);
 }
 
 startGame();

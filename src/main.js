@@ -88,38 +88,37 @@ const startGame = () => {
 
     const tiles = scene.renderScene(JSON.parse(JSON.stringify(devData)));
     tiles.slice(scene.start, scene.end).forEach((tile, i, { [i-1]: prev, [i+1]: next }) => {
-        if (prev && prev.y > tile.y) {
+        if (next && next.y < tile.y) {
             fillAscendingTile(tile);
         } else if (prev && prev.y < tile.y) {
            fillDescendingTile(tile)
-        } else {
-            fillTile(tile);
         }
+        fillTile(tile);
         fillVerticalSceneSlice(tile);
     })
     player.set(510, 340); // TODO this cannot be hard coded
 }
 
 const fillAscendingTile = ({ x, y }) => {
-    context.fillStyle = "red";
+    context.fillStyle = "green";
     context.beginPath();
-    context.moveTo(x + 30, y + 30);
+    context.moveTo(x + 30, y - 30);
     context.lineTo(x + 30, y);
-    context.lineTo(x, y + 30);
+    context.lineTo(x, y);
     context.fill();
 }
 
 const fillDescendingTile = ({ x, y }) => {
-    context.fillStyle = "red";
+    context.fillStyle = "green";
     context.beginPath();
-    context.moveTo(x, y);
-    context.lineTo(x + 30, y + 30);
-    context.lineTo(x, y + 30);
+    context.moveTo(x, y - 30);
+    context.lineTo(x + 30, y);
+    context.lineTo(x, y);
     context.fill();
 }
 
 const fillTile = ({ x, y }) => {
-    context.fillStyle = "red";
+    context.fillStyle = "green";
     context.fillRect(x, y, 30, 30);
 }
 
@@ -129,8 +128,7 @@ const fillVerticalSceneSlice = (tile) => {
 
     let yCounter = tile.y;
     for (let index = 0; index < num; index++) {
-        context.fillStyle = "red";
-        context.fillRect(tile.x, yCounter + 30, 30, 30);
+        fillTile({ x: tile.x, y: yCounter + 30 })
         yCounter = yCounter + 30;
     }
 } 
@@ -169,13 +167,12 @@ const updateGame = (direction) => {
     const visibleTiles = chunkedTilesWithVerticalOffsetApplied.filter(tile => tile.y > 30 || tile.y < 570)
     
     visibleTiles.forEach((tile, i, { [i-1]: prev, [i+1]: next }) => {
-        if (prev && prev.y > tile.y) {
+        if (next && next.y < tile.y) {
             fillAscendingTile(tile);
         } else if (prev && prev.y < tile.y) {
            fillDescendingTile(tile)
-        } else {
-            fillTile(tile);
         }
+        fillTile(tile);
         fillVerticalSceneSlice(tile);
     });
 
